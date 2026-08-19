@@ -1,0 +1,107 @@
+{
+  "realm": "starter",
+  "displayName": "Aspire Starter",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      { "name": "sample.reader", "description": "Can read samples." },
+      { "name": "sample.writer", "description": "Can create, update and delete samples." }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "simble-api",
+      "name": "Simble API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true
+    },
+    {
+      "clientId": "integration-tests",
+      "name": "Integration Tests",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email",
+        "simble-api-audience"
+      ]
+    },
+    {
+      "clientId": "scalar",
+      "name": "Scalar API Reference",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:*/*",
+        "https://localhost:*/*"
+      ],
+      "webOrigins": [
+        "http://localhost:*",
+        "https://localhost:*"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email",
+        "simble-api-audience"
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "simble-api-audience",
+      "description": "Adds the Simble API audience to access tokens.",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "simble-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "simble-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "developer",
+      "email": "developer@localhost",
+      "firstName": "Local",
+      "lastName": "Developer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "developer", "temporary": false }
+      ],
+      "realmRoles": [ "sample.reader", "sample.writer" ]
+    }
+  ]
+}

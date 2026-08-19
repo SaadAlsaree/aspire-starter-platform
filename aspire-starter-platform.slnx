@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/App/App.AppHost/App.AppHost.csproj" Id="d0f459a4-3ddc-4434-b446-8e589334bf1c" />
+    <Project Path="src/App/App.ServiceDefaults/App.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Simble/Simble.csproj" Id="f7d0cd4f-3f87-445f-885a-a910920b4240" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/SharedApi/SharedApi.csproj" />
+    <Project Path="src/Shared/SharedInfrastructure/SharedInfrastructure.csproj" />
+    <Project Path="src/Shared/SharedKernel/SharedKernel.csproj" />
+    <Project Path="src/Shared/SharedMessaging/SharedMessaging.csproj" />
+  </Folder>
+  <Folder Name="/src/Tests/">
+    <Project Path="src/Tests/Simble.IntegrationTests/Simble.IntegrationTests.csproj" />
+    <Project Path="src/Tests/Simble.UnitTests/Simble.UnitTests.csproj" />
+  </Folder>
+</Solution>
