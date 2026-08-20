@@ -1,0 +1,15 @@
+[Bb]in/
+[Oo]bj/
+[Ll]ogs/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.log
+*.received.*
+artifacts/
+TestResults/
+coverage/
+.env
+appsettings.*.local.json

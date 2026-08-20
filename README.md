@@ -1,58 +1,35 @@
 # Aspire Starter Platform
 
-A .NET 10 / Aspire starter for building services with vertical slices, Wolverine, EF Core and Keycloak.
+**Ship a production-shaped .NET API in one command — not in three weeks.**
 
-## Stack
-
-| Concern | Choice |
-|---|---|
-| Orchestration | .NET Aspire 13 (`App.AppHost`) |
-| API | Wolverine HTTP endpoints, conventions shared via `SharedApi` |
-| Versioning | URL segment (`/api/v1/...`) via `Asp.Versioning` |
-| Messaging | WolverineFx (handlers, transactional middleware, outbox-ready) |
-| Persistence | EF Core 10 + PostgreSQL (Npgsql) |
-| Cache | Redis output cache (falls back to in-memory when no `cache` connection string) |
-| Identity | Keycloak (JWT bearer, realm imported from `src/App/App.AppHost/Keycloak`) |
-| Validation | FluentValidation via Wolverine middleware |
-| Mapping | Mapster |
-| Errors | RFC 9457 `application/problem+json` |
-| Observability | OpenTelemetry + Serilog (console) |
-
-## Run
+A .NET 10 Aspire template that gives you the parts every serious service needs and most starters
+leave out: authentication, versioning, caching, rate limiting, problem details, observability,
+soft delete with audit and optimistic concurrency — already wired, already tested.
 
 ```bash
-dotnet run --project src/App/App.AppHost
+dotnet new install AspirePlatform.Templates
+dotnet new aspire-platform -n Contoso --ServiceName Billing
+dotnet run --project Contoso/src/App/App.AppHost
 ```
 
-The dashboard exposes the API, Postgres, Redis and Keycloak. Keycloak listens on `http://localhost:6001`
-with realm `starter` and a development user `developer` / `developer`. The realm also ships an
-`integration-tests` client with direct access grants, used only by the test suite.
+That is a running API, PostgreSQL, Redis and Keycloak, with a signed-in developer account and a
+working CRUD feature. No manual wiring.
 
-Open Scalar at `/scalar/v1` on the API endpoint, authorize with the `scalar` client, then call the API.
+---
 
-## Layout
+## Why teams pick it
 
-```
-src/
-  App/
-    App.AppHost/          Aspire orchestration and container resources
-    App.ServiceDefaults/  Telemetry, health checks, OpenAPI, Keycloak auth
-  Services/
-    Simble/               Sample service: features, data, DI, migrations
-  Shared/
-    SharedKernel/         Entities, Result, DomainError, ICurrentUser, handler contracts
-    SharedApi/            Wolverine HTTP conventions shared by every service
-    SharedInfrastructure/ ProblemDetails, paging, sorting, caching, rate limiting
-    SharedMessaging/      Wolverine defaults
-  Tests/
-    Simble.UnitTests/         Pure logic, no external dependencies
-    Simble.IntegrationTests/  Full AppHost, requires Docker
-```
+| | |
+|---|---|
+| **Mistakes caught at compile time** | Endpoints call handlers directly through typed contracts. Change a handler's return type and the build breaks — not production. |
+| **Security you cannot forget** | Deny-by-default authorization plus a test that walks every published endpoint and fails the build if one is reachable anonymously. |
+| **Scales to hundreds of endpoints** | Conventions live in one shared module. A new endpoint inherits versioning, auth, caching and error handling without touching infrastructure. |
+| **Your identity, your choice** | Keycloak, Microsoft Entra ID, or none — a config switch, not a rewrite. |
+| **Proven, not promised** | 44 tests ship green, including integration tests that boot the real stack in Docker. |
 
-## Conventions
+## The core idea
 
-A feature slice owns its command/query, handler, validator and endpoint in one folder.
-Handlers implement a typed contract from `SharedKernel.Abstractions` and never reference HTTP:
+Business logic never touches HTTP. The endpoint is a thin, compiler-checked adapter.
 
 ```csharp
 public sealed class CreateSampleHandler(AppDbContext db)
@@ -62,139 +39,152 @@ public sealed class CreateSampleHandler(AppDbContext db)
     {
         if (await db.Samples.AnyAsync(s => s.Name == command.Name, ct))
         {
-            return SampleErrors.NameAlreadyExists(command.Name);
+            return SampleErrors.NameAlreadyExists(command.Name);   // becomes 409 + problem details
         }
         ...
     }
 }
 ```
 
-Endpoints are a thin Wolverine HTTP surface that calls the handler directly, so the response
-type is checked by the compiler rather than at runtime:
-
 ```csharp
-public static class CreateSampleEndpoint
+[ApiVersion("1.0")]
+[Tags("Samples")]
+[EndpointSummary("Create Sample")]
+[WolverinePost("/samples")]
+public static async Task<IResult> CreateAsync(
+    CreateSampleCommand command,
+    [NotBody] CreateSampleHandler handler,
+    IOutputCacheStore cacheStore,
+    HttpContext httpContext,
+    CancellationToken ct)
 {
-    [ApiVersion("1.0")]
-    [Tags("Samples")]
-    [EndpointSummary("Create Sample")]
-    [EndpointDescription("Create a new sample")]
-    [WolverinePost("/samples")]
-    public static async Task<IResult> CreateAsync(
-        CreateSampleCommand command,
-        [NotBody] CreateSampleHandler handler,
-        IOutputCacheStore cacheStore,
-        HttpContext httpContext,
-        CancellationToken ct)
-    {
-        var result = await handler.ExecuteAsync(command, ct);
+    var result = await handler.ExecuteAsync(command, ct);
 
-        return await result.ToHttpResultAsync(cacheStore, SampleCache.Tag, ct,
-            id => Results.Created($"{httpContext.Request.Path}/{id}", id));
-    }
+    return await result.ToHttpResultAsync(cacheStore, SampleCache.Tag, ct,
+        id => Results.Created($"{httpContext.Request.Path}/{id}", id));
 }
 ```
 
-Mark every injected service on a POST/PUT/DELETE endpoint with `[NotBody]`. Wolverine binds the
-first unattributed parameter from the request body, so an unmarked handler is deserialized
-instead of resolved.
+`ErrorType` maps to the status code centrally, so 404, 409 and 400 are never decided by hand.
 
-Every route is mounted by `MapPlatformApi()` and requires an authenticated caller through
-`RequireAuthorizeOnAll()`. Anonymous access is opt-in per endpoint (`/health/live`,
-`/health/ready`, `/openapi`, `/scalar`).
+## Enforced automatically
 
-## Database
+Five tests read the service's own OpenAPI document and hold the whole surface to the rules. New
+endpoints are covered the moment they are mapped.
 
-Entities inheriting `BaseEntity` get audit columns, a soft-delete query filter, and an
-application-managed concurrency token (`Version`) that produces `409 Conflict` on lost updates.
-Unique indexes on soft-deleted tables must be filtered, as in `SampleConfiguration`:
+- Every endpoint rejects anonymous callers
+- Every endpoint carries tags, a summary and a description
+- Every route is versioned under `/api/v{n}`
+- Supported versions are advertised; unknown versions do not route
+- Wolverine's generated code is current (CI fails on drift)
 
-```csharp
-builder.HasIndex(sample => sample.Name).IsUnique().HasFilter("\"IsDeleted\" = false");
-```
+## Identity providers
 
-Add a migration:
+Set `Authentication:Provider`, or pass `--AuthProvider` when generating.
 
-```bash
-dotnet ef migrations add <Name> --project src/Services/Simble --output-dir Data/Migrations
-```
+| Provider | Local footprint | Notes |
+|---|---|---|
+| `Keycloak` | Container started by the AppHost with an imported realm | Default. Works offline |
+| `EntraId` | None — validated against your tenant | Set `EntraId:TenantId` and `Audience` first |
+| `None` | None | Anonymous endpoints, for spikes |
 
-Migrations run at startup by default. Set `Database:Migration:RunOnStartup` to `false` and run them
-as a separate job when deploying multiple replicas.
+`ICurrentUser` reads `sub` then `oid`, so audit columns fill in under both Keycloak and Entra ID.
 
-## Platform API conventions
+## Templates
 
-Every service gets the same HTTP behaviour from `SharedApi` with two calls:
+| Template | Short names | Creates |
+|---|---|---|
+| Aspire Vertical Slice Platform | `aspire-platform`, `avsp` | The whole solution |
+| Aspire Vertical Slice Service | `aspire-service`, `avss` | Another service inside it |
 
-```csharp
-services.AddPlatformApi();   // registration
-app.MapPlatformApi();        // pipeline
-```
-
-That applies URL-segment versioning, `RequireAuthorizeOnAll()`, FluentValidation to ProblemDetails,
-the per-user output cache policy for endpoints marked `[Cacheable]`, and the 401/403/429/500
-response metadata on every chain. Integration tests enforce the conventions across the whole
-surface by reading the published OpenAPI document: one proves every operation rejects anonymous
-callers, another proves every operation carries tags, a summary and a description. New endpoints
-are covered automatically.
-
-## API versioning
-
-Routes are versioned by URL segment. `MapPlatformApi()` sets the template `api/v{version}`, and each
-endpoint declares its version:
-
-```csharp
-[ApiVersion("1.0")]
-[WolverineGet("/samples/{id}")]
-```
-
-The endpoint route stays version-free; the policy rewrites it to `/api/v1/samples/{id}`. Every
-response carries `api-supported-versions`, and deprecated versions carry `api-deprecated-versions`.
-
-To ship v2 of one endpoint, add a second endpoint class with `[ApiVersion("2.0")]` and the same
-route. Both versions coexist; nothing else changes. Retire the old one with a sunset window:
-
-```csharp
-app.MapPlatformApi(configure: options => options.UseApiVersioning(versioning =>
-{
-    versioning.Deprecate("1.0").On(new DateTimeOffset(2027, 1, 1, 0, 0, 0, TimeSpan.Zero));
-    versioning.Sunset("1.0").On(new DateTimeOffset(2027, 6, 1, 0, 0, 0, TimeSpan.Zero));
-}));
-```
-
-Three integration tests keep this honest: every published path must start with `/api/v`, the
-supported-versions header must be emitted, and an unknown version must not route.
-
-## Tests
+### Create a solution
 
 ```bash
-dotnet test src/Tests/Simble.UnitTests/Simble.UnitTests.csproj
+dotnet new aspire-platform -n Contoso --ServiceName Billing --AuthProvider EntraId
 ```
 
-Integration tests boot the real AppHost and need a running Docker daemon.
+Solution name and service name are independent.
 
-## Wolverine code generation
+| Option | Default |
+|---|---|
+| `--ServiceName` | `Api` |
+| `--AuthProvider` | `Keycloak` |
+| `--KeycloakPort` | `6001` |
+| `--CorsOrigin` | `http://localhost:3000` |
+| `--IncludeCiWorkflow` | `true` |
 
-Generated handlers under `src/Services/Simble/Internal/Generated` are compiled into the service and
-used in production (`TypeLoadMode.Static`). Regenerate after changing a handler signature:
+### Add a service
+
+Run from the solution's `src/Services` folder so the shared project references resolve:
 
 ```bash
-dotnet run --project src/Services/Simble --no-launch-profile -- codegen write
+cd src/Services
+dotnet new aspire-service -n Inventory
+dotnet sln ../../Contoso.slnx add Inventory/Inventory.csproj
+dotnet add ../App/App.AppHost reference Inventory
 ```
 
-## Behind a reverse proxy
+Register the resource in `src/App/App.AppHost/AppHost.cs`:
 
-Client IPs drive rate-limit partitions. Register the proxy so `X-Forwarded-For` is trusted:
+```csharp
+var inventoryDb = postgres.AddDatabase("inventorydb", "inventory");
 
-```json
-{ "ForwardedHeaders": { "KnownNetworks": [ "10.0.0.0/8" ] } }
+var inventory = builder.AddProject<Projects.Inventory>("inventory")
+    .WithReference(inventoryDb).WaitFor(inventoryDb)
+    .WithReference(cache).WaitFor(cache)
+    .WithExternalHttpEndpoints();
 ```
 
-## Notes
+With the Keycloak provider, add `inventory.WithReference(keycloak).WaitFor(keycloak);` inside the
+existing `if` block, and copy the `<service>-api` client and audience mapper in
+`Keycloak/starter-realm.json` for `inventory-api`.
 
-- Only Postgres keeps a data volume. Keycloak re-imports `starter-realm.json` on every start, so the
-  realm stays source-controlled; users created through the Keycloak UI do not survive a restart.
-- Rate limiting is per-process. Scale-out multiplies the effective limit; move it to the ingress
+That is all. The new service ships with its own migrations and generated endpoints, so it runs
+immediately. Regenerate only after you change the model or an endpoint signature:
+
+```bash
+dotnet ef migrations add <Name> --project src/Services/Inventory --output-dir Data/Migrations
+dotnet run --project src/Services/Inventory --no-launch-profile -- codegen write
+```
+
+The template prints these steps after it runs.
+
+## Under the hood
+
+| Concern | Choice |
+|---|---|
+| Orchestration | .NET Aspire 13 |
+| API | Wolverine HTTP, vertical slices, conventions in `SharedApi` |
+| Versioning | URL segment via `Asp.Versioning` |
+| Persistence | EF Core 10 + PostgreSQL, soft delete, audit, concurrency token |
+| Cache | Redis output cache, per-user, tag eviction on writes |
+| Errors | RFC 9457 `application/problem+json` |
+| Validation | FluentValidation |
+| Observability | OpenTelemetry + Serilog |
+| Tests | xUnit v3, Aspire integration testing |
+
+## Operating notes
+
+- **`[NotBody]`** — mark injected services on POST/PUT/DELETE endpoints. Wolverine binds the first
+  unattributed parameter from the request body.
+- **Code generation** — after changing an endpoint signature run
+  `dotnet run --project src/Services/<Service> --no-launch-profile -- codegen write`.
+- **Migrations** — run at startup by default; set `Database:Migration:RunOnStartup` to `false` and
+  run them as a job when deploying multiple replicas.
+- **Behind a proxy** — register it so `X-Forwarded-For` is trusted, otherwise every caller shares
+  one rate-limit partition: `{ "ForwardedHeaders": { "KnownNetworks": [ "10.0.0.0/8" ] } }`.
+- **Rate limiting** is per process. Scale-out multiplies the effective limit; move it to the ingress
   when that matters.
-- `Directory.Packages.props` pins versions for the whole platform, including packages not yet
-  referenced by any project.
+
+## Contributing to the template
+
+The published template is generated from this solution, so what ships is exactly what CI builds and
+tests.
+
+```powershell
+./sync-template.ps1 -Check    # fails if the packaged copy drifted
+./pack.ps1 -Smoke             # pack, install, generate a throwaway solution and build it
+./pack.ps1 -Push -ApiKey <key>
+```
+
+MIT licensed.

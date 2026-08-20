@@ -20,6 +20,8 @@ public class ApiSecurityConventionTests(DistributedApplicationFixture fixture)
     [Fact]
     public async Task EveryPublishedOperation_RejectsAnonymousCallers()
     {
+        Assert.SkipUnless(fixture.RequiresAuthentication, "The solution was generated without an identity provider.");
+
         var operations = await DiscoverOperationsAsync();
 
         Assert.NotEmpty(operations);

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <PackageType>Template</PackageType>
+    <IsPackable>true</IsPackable>
+    <IncludeSymbols>false</IncludeSymbols>
+    <PackageId>AspirePlatform.Templates</PackageId>
+    <Version>1.0.0</Version>
+    <Title>Aspire Vertical Slice Platform Templates</Title>
+    <Authors>Aspire Starter Platform</Authors>
+    <Company>Aspire Starter Platform</Company>
+    <Product>Aspire Vertical Slice Platform Templates</Product>
+    <Description>A .NET Aspire solution template and a matching service template, built on Wolverine HTTP, vertical slices, EF Core on PostgreSQL, Keycloak, Redis output caching, RFC 9457 problem details and URL-segment API versioning. The solution name and the service name are chosen independently.</Description>
+    <PackageTags>dotnet-new;template;aspire;webapi;wolverine;cqrs;vertical-slice-architecture;aspnetcore;keycloak;postgresql</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/saad-alsaree/aspire-starter-platform</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/saad-alsaree/aspire-starter-platform</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Initial release: aspire-platform solution template and aspire-service project template on .NET 10.</PackageReleaseNotes>
+
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
+    <!-- The packed content is template source, not code that participates in this build. -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <RunAnalyzers>false</RunAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- One README serves GitHub and the package listing. -->
+    <None Remove="$(MSBuildProjectDirectory)/README.md" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" Visible="false" />
+
+    <Content Include="aspire-platform\**\*"
+             Exclude="aspire-platform\**\bin\**;aspire-platform\**\obj\**;aspire-platform\**\.vs\**;aspire-platform\**\*.user" />
+    <Content Include="aspire-service\**\*"
+             Exclude="aspire-service\**\bin\**;aspire-service\**\obj\**;aspire-service\**\*.user" />
+  </ItemGroup>
+
+</Project>

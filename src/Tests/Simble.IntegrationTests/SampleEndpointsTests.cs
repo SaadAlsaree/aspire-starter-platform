@@ -22,6 +22,8 @@ public class SampleEndpointsTests(DistributedApplicationFixture fixture)
     [Fact]
     public async Task ListSamples_WithoutToken_IsUnauthorized()
     {
+        Assert.SkipUnless(fixture.RequiresAuthentication, "The solution was generated without an identity provider.");
+
         var response = await fixture.ApiClient.GetAsync(
             SamplesUri,
             TestContext.Current.CancellationToken);

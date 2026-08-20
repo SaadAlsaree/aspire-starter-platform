@@ -1,0 +1,11 @@
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+.idea/
+TestResults/
+Logs/
+Internal/Generated/
+*.user
+*.suo
+*.db

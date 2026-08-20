@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Aspire Starter Platform",
+  "classifications": [ "Web", "WebAPI", "Aspire", "Wolverine", "CQRS", "VSA" ],
+  "identity": "AspirePlatform.Service",
+  "name": "Aspire Vertical Slice Service",
+  "shortName": [ "aspire-service", "avss" ],
+  "description": "Adds a service to an existing Aspire Vertical Slice Platform solution: Wolverine HTTP endpoints, vertical slices, EF Core on PostgreSQL, Keycloak authentication and a sample CRUD feature. Create it from the solution's src/Services folder.",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Simble",
+  "defaultName": "Api",
+  "preferNameDirectory": true,
+  "forms": {
+    "toLower": {
+      "identifier": "lowerCase"
+    }
+  },
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": ".NET 10" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0"
+    },
+    "ServiceNameLower": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "toLower",
+      "replaces": "simble",
+      "fileRename": "simble"
+    },
+    "CorsOrigin": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "http://localhost:3000",
+      "replaces": "http://localhost:3000",
+      "description": "First trusted CORS origin. The service refuses to start with an empty allow list."
+    }
+  },
+  "primaryOutputs": [
+    { "path": "Simble.csproj" }
+  ],
+  "postActions": [
+    {
+      "description": "Wire the new service into the solution",
+      "manualInstructions": [
+        {
+          "text": "The service ships with its own migrations and generated endpoints, so it runs as soon as it is wired in.\n\n1. Add the project: dotnet sln add src/Services/<ServiceName>/<ServiceName>.csproj\n2. Reference it from the AppHost: dotnet add src/App/App.AppHost reference src/Services/<ServiceName>\n3. Register it in src/App/App.AppHost/AppHost.cs:\n     var <lower>Db = postgres.AddDatabase(\"<lower>db\", \"<lower>\");\n\n     var <lower> = builder.AddProject<Projects.<ServiceName>>(\"<lower>\")\n         .WithReference(<lower>Db).WaitFor(<lower>Db)\n         .WithReference(cache).WaitFor(cache)\n         .WithExternalHttpEndpoints();\n4. With the Keycloak provider, add '<lower>.WithReference(keycloak).WaitFor(keycloak);' inside the existing if block, and add a client plus audience mapper for '<lower>-api' in src/App/App.AppHost/Keycloak/starter-realm.json.\n\nAfterwards, regenerate only when the model or an endpoint signature changes:\n  dotnet ef migrations add <Name> --project src/Services/<ServiceName> --output-dir Data/Migrations\n  dotnet run --project src/Services/<ServiceName> --no-launch-profile -- codegen write"
+        }
+      ],
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "continueOnError": true
+    }
+  ]
+}

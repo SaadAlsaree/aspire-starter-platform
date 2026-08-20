@@ -6,8 +6,8 @@ namespace SharedInfrastructure.Security;
 
 internal sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
-    public Guid? Id =>
-        Guid.TryParse(Principal?.FindFirstValue("sub"), out var id) ? id : null;
+    // Keycloak puts a guid in "sub"; Entra ID puts an opaque value there and the guid in "oid".
+    public Guid? Id => ReadGuidClaim("sub") ?? ReadGuidClaim("oid");
 
     public string? Name =>
         Principal?.FindFirstValue("preferred_username") ?? Principal?.Identity?.Name;
@@ -15,4 +15,7 @@ internal sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : IC
     public bool IsAuthenticated => Principal?.Identity?.IsAuthenticated == true;
 
     private ClaimsPrincipal? Principal => httpContextAccessor.HttpContext?.User;
+
+    private Guid? ReadGuidClaim(string claimType) =>
+        Guid.TryParse(Principal?.FindFirstValue(claimType), out var value) ? value : null;
 }

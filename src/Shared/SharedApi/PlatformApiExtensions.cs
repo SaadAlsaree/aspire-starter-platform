@@ -38,6 +38,9 @@ public static class PlatformApiExtensions
 
         app.MapWolverineEndpoints(options =>
         {
+            // Validators and middleware routinely depend on scoped services such as the DbContext.
+            options.ServiceProviderSource = ServiceProviderSource.FromHttpContextRequestServices;
+
             options.UseApiVersioning(versioning =>
             {
                 versioning.UrlSegmentPrefix = UrlSegmentPrefix;

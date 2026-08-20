@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore aspire-starter-platform.slnx
+
+      - name: Build
+        run: dotnet build aspire-starter-platform.slnx --no-restore --configuration Release
+
+      - name: Unit tests
+        run: dotnet test src/Tests/Simble.UnitTests/Simble.UnitTests.csproj --no-build --configuration Release
+
+      - name: Integration tests
+        run: dotnet test src/Tests/Simble.IntegrationTests/Simble.IntegrationTests.csproj --no-build --configuration Release
+
+      - name: Verify Wolverine generated code is current
+        run: |
+          dotnet run --project src/Services/Simble/Simble.csproj --no-launch-profile --configuration Release -- codegen write
+          git diff --exit-code src/Services/Simble/Internal/Generated
+
+  template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify template copy matches the solution
+        shell: pwsh
+        run: ./sync-template.ps1 -Check
+
+      - name: Pack templates
+        run: dotnet pack templates/AspirePlatform.Templates.csproj -c Release
+
+      - name: Install and instantiate
+        run: |
+          dotnet new install templates/bin/Release/*.nupkg
+          mkdir -p /tmp/template-smoke
+          cd /tmp/template-smoke
+          dotnet new aspire-platform -n Acme --ServiceName Billing
+          dotnet build Acme/Acme.slnx
+          cd Acme/src/Services
+          dotnet new aspire-service -n Inventory
+          dotnet sln ../../Acme.slnx add Inventory/Inventory.csproj
+          dotnet build ../../Acme.slnx

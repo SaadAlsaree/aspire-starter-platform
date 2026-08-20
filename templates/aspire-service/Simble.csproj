@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>Simble</RootNamespace>
+    <UserSecretsId>7c1f1f4c-4d0a-4a4b-9b32-2e6b3f0d5a11</UserSecretsId>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository>simble</ContainerRepository>
+    <IncludeEfDesignTimePackages Condition="'$(IncludeEfDesignTimePackages)' == ''">true</IncludeEfDesignTimePackages>
+    <IncludeWolverineRuntimeCompilation Condition="'$(IncludeWolverineRuntimeCompilation)' == ''">true</IncludeWolverineRuntimeCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Mapster" />
+    <PackageReference Include="Mapster.DependencyInjection" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="WolverineFx" />
+    <PackageReference Include="WolverineFx.FluentValidation" />
+    <PackageReference Include="WolverineFx.Http" />
+    <PackageReference Include="WolverineFx.Http.FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeEfDesignTimePackages)' == 'true'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeWolverineRuntimeCompilation)' == 'true'">
+    <PackageReference Include="WolverineFx.RuntimeCompilation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Internal\Generated\**\*.cs" Watch="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\App\App.ServiceDefaults\App.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Shared\SharedApi\SharedApi.csproj" />
+    <ProjectReference Include="..\..\Shared\SharedInfrastructure\SharedInfrastructure.csproj" />
+    <ProjectReference Include="..\..\Shared\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Shared\SharedMessaging\SharedMessaging.csproj" />
+  </ItemGroup>
+
+</Project>

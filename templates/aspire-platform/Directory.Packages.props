@@ -1,0 +1,158 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <!-- Version Variables for Consistency -->
+    <AspnetVersion>10.0.11</AspnetVersion>
+    <MicrosoftExtensionsVersion>10.8.0</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsHttpResilienceVersion>10.9.0</MicrosoftExtensionsHttpResilienceVersion>
+    <AspireVersion>13.4.6</AspireVersion>
+    <AspireUnstablePackagesVersion>13.4.6-preview.1.26319.6</AspireUnstablePackagesVersion>
+    <CommunityToolkitAspireVersion>13.4.0</CommunityToolkitAspireVersion>
+    <GrpcVersion>2.83.0</GrpcVersion>
+    <DuendeVersion>7.3.1</DuendeVersion>
+    <ApiVersioningVersion>10.2.2</ApiVersioningVersion>
+    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
+    <FluentValidationVersion>12.1.1</FluentValidationVersion>
+    <WolverineVersion>6.28.0</WolverineVersion>
+    <MapsterVersion>10.0.11</MapsterVersion>
+    <NpgsqlEfVersion>10.0.3</NpgsqlEfVersion>
+    <RefitVersion>15.1.0</RefitVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Aspire Core & Hosting Packages -->
+    <PackageVersion Include="Aspire.Hosting.Azure.CognitiveServices" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Qdrant" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Yarp" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Keycloak.Authentication" Version="$(AspireUnstablePackagesVersion)" />
+    <PackageVersion Include="Aspire.Npgsql" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Qdrant.Client" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.RabbitMQ.Client" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.StackExchange.Redis.OutputCaching" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Azure.AI.OpenAI" Version="$(AspireUnstablePackagesVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Docker" Version="$(AspireUnstablePackagesVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="$(AspireUnstablePackagesVersion)" />
+
+    <!-- Meilisearch (lightweight search — replaces Elasticsearch) -->
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.Meilisearch" Version="$(CommunityToolkitAspireVersion)" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Meilisearch" Version="$(CommunityToolkitAspireVersion)" />
+
+    <!-- MinIO (local S3-compatible storage — NOTE: MinIO OSS archived Feb 2026, consider Garage for future) -->
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.Minio" Version="$(CommunityToolkitAspireVersion)" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Minio.Client" Version="$(CommunityToolkitAspireVersion)" />
+
+    <!-- ASP.NET & Microsoft Extensions (NET 10) -->
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="$(AspnetVersion)">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(MicrosoftExtensionsHttpResilienceVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="10.9.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(AspnetVersion)" />
+    <!-- Keep 2.x — required by Microsoft.AspNetCore.OpenApi 10.x -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
+
+    <!-- Entity Framework & Database (PostgreSQL / Pgvector) -->
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlEfVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(AspnetVersion)" />
+    <PackageVersion Include="Pgvector" Version="0.3.2" />
+    <PackageVersion Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
+
+    <!-- API Versioning -->
+    <PackageVersion Include="Asp.Versioning.Http" Version="$(ApiVersioningVersion)" />
+    <PackageVersion Include="Asp.Versioning.Http.Client" Version="$(ApiVersioningVersion)" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="$(ApiVersioningVersion)" />
+    <PackageVersion Include="Asp.Versioning.OpenApi" Version="$(ApiVersioningVersion)" />
+
+    <!-- Health Checks -->
+    <PackageVersion Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
+
+    <!-- CommunityToolkit AI & Aspire -->
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.Ollama" Version="$(CommunityToolkitAspireVersion)" />
+    <PackageVersion Include="CommunityToolkit.Aspire.OllamaSharp" Version="$(CommunityToolkitAspireVersion)" />
+
+    <!-- OpenTelemetry Observability -->
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.GrpcNetClient" Version="1.17.0-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryVersion)" />
+
+    <!-- gRPC -->
+    <PackageVersion Include="Grpc.AspNetCore" Version="$(GrpcVersion)" />
+    <PackageVersion Include="Grpc.Net.ClientFactory" Version="$(GrpcVersion)" />
+    <PackageVersion Include="Grpc.Tools" Version="$(GrpcVersion)" PrivateAssets="All" />
+    <PackageVersion Include="Google.Protobuf" Version="3.35.1" />
+
+    <!-- Code Generation & Scaffolding (.NET 10) -->
+    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="$(AspnetVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
+    <PackageVersion Include="Microsoft.Web.LibraryManager.Build" Version="3.0.71" />
+
+    <!-- Testing Frameworks -->
+    <PackageVersion Include="MSTest" Version="4.3.3" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
+    <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
+
+    <!-- Static Code Analyzers -->
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.32.0.713" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+
+    <!-- WolverineFx Ecosystem -->
+    <PackageVersion Include="WolverineFx" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.FluentValidation" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.Http" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.RabbitMQ" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="$(WolverineVersion)" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="$(WolverineVersion)" />
+
+    <!-- Utilities & Libraries -->
+    <PackageVersion Include="Dapper" Version="2.1.79" />
+    <PackageVersion Include="FluentValidation" Version="$(FluentValidationVersion)" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="$(FluentValidationVersion)" />
+    <PackageVersion Include="Polly" Version="8.7.0" />
+    <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.7.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.0.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+    <PackageVersion Include="IdentityModel" Version="8.1.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.30" />
+    <PackageVersion Include="Meilisearch" Version="0.20.0" />
+    <PackageVersion Include="Minio" Version="7.0.0" />
+    <!-- Inter-Service Communication (Refit) -->
+    <PackageVersion Include="Refit" Version="$(RefitVersion)" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="$(RefitVersion)" />
+    <!-- Object Mapping (Mapster) -->
+    <PackageVersion Include="Mapster" Version="$(MapsterVersion)" />
+    <PackageVersion Include="Mapster.DependencyInjection" Version="$(MapsterVersion)" />
+  </ItemGroup>
+</Project>

@@ -1,4 +1,5 @@
 using App.ServiceDefaults;
+using App.ServiceDefaults.Authentication;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using SharedApi;
@@ -16,14 +17,24 @@ public static class WebApplicationExtensions
         app.UseExceptionHandler();
         app.UseStatusCodePages();
         app.UseCors(ApiServiceCollectionExtensions.DefaultCorsPolicy);
-        app.UseAuthentication();
+
+        // AuthenticationMiddleware needs a registered scheme, so it is only added when a
+        // provider is configured.
+        var authenticationEnabled =
+            app.Configuration.GetAuthenticationProvider() != AuthenticationProvider.None;
+
+        if (authenticationEnabled)
+        {
+            app.UseAuthentication();
+        }
+
         app.UseAuthorization();
         app.UseRateLimiter();
         app.UseOutputCache();
 
         app.MapDefaultEndpoints();
         app.MapDefaultOpenApi();
-        app.MapPlatformApi();
+        app.MapPlatformApi(requireAuthorization: authenticationEnabled);
 
         return app;
     }

@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Aspire Starter Platform",
+  "classifications": [ "Web", "WebAPI", "Aspire", "Wolverine", "CQRS", "VSA", "Cloud" ],
+  "identity": "AspirePlatform.Solution",
+  "name": "Aspire Vertical Slice Platform",
+  "shortName": [ "aspire-platform", "avsp" ],
+  "description": "Creates a .NET Aspire solution with a Wolverine HTTP service, vertical slices, EF Core on PostgreSQL, Keycloak authentication, Redis output cache, RFC 9457 problem details, URL-segment API versioning, and unit plus Aspire integration tests. The solution name and the service name are chosen independently.",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "AspirePlatform",
+  "defaultName": "AspirePlatform",
+  "preferNameDirectory": true,
+  "forms": {
+    "toLower": {
+      "identifier": "lowerCase"
+    }
+  },
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": ".NET 10" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0"
+    },
+    "ServiceName": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "Api",
+      "description": "Name of the service created inside the solution. Independent of the solution name.",
+      "replaces": "Simble",
+      "fileRename": "Simble"
+    },
+    "ServiceNameLower": {
+      "type": "derived",
+      "valueSource": "ServiceName",
+      "valueTransform": "toLower",
+      "replaces": "simble",
+      "fileRename": "simble"
+    },
+    "AuthProvider": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "Keycloak", "description": "Keycloak container started by the AppHost, with an imported realm" },
+        { "choice": "EntraId", "description": "Microsoft Entra ID. Set TenantId and Audience in appsettings before running" },
+        { "choice": "None", "description": "No authentication. Endpoints are anonymous" }
+      ],
+      "defaultValue": "Keycloak",
+      "description": "Identity provider wired into the service and the AppHost."
+    },
+    "AuthProviderSetting": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "\"Provider\": \"Keycloak\"",
+      "parameters": {
+        "cases": [
+          { "condition": "(AuthProvider == \"Keycloak\")", "value": "\"Provider\": \"Keycloak\"" },
+          { "condition": "(AuthProvider == \"EntraId\")", "value": "\"Provider\": \"EntraId\"" },
+          { "condition": "(AuthProvider == \"None\")", "value": "\"Provider\": \"None\"" }
+        ]
+      }
+    },
+    "KeycloakPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "defaultValue": "6001",
+      "replaces": "6001",
+      "description": "Host port Keycloak listens on during local development."
+    },
+    "CorsOrigin": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "http://localhost:3000",
+      "replaces": "http://localhost:3000",
+      "description": "First trusted CORS origin. The service refuses to start with an empty allow list."
+    },
+    "IncludeCiWorkflow": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include the GitHub Actions workflow."
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Skip the automatic restore after the solution is created."
+    }
+  },
+  "primaryOutputs": [
+    { "path": "AspirePlatform.slnx" },
+    { "path": "src/App/App.AppHost/App.AppHost.csproj" }
+  ],
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!IncludeCiWorkflow)",
+          "exclude": [ ".github/**" ]
+        },
+        {
+          "condition": "(AuthProvider != \"Keycloak\")",
+          "exclude": [ "src/App/App.AppHost/Keycloak/**" ]
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages",
+      "manualInstructions": [
+        { "text": "Run 'dotnet restore'" }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Next steps",
+      "manualInstructions": [
+        {
+          "text": "1. Start everything with 'dotnet run --project src/App/App.AppHost'.\n2. Sign in to Keycloak with developer / developer, or edit src/App/App.AppHost/Keycloak/starter-realm.json.\n3. Add another service from src/Services with 'dotnet new aspire-service -n <ServiceName>'.\n4. Regenerate Wolverine code after changing an endpoint signature: 'dotnet run --project src/Services/<ServiceName> --no-launch-profile -- codegen write'."
+        }
+      ],
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "continueOnError": true
+    }
+  ]
+}

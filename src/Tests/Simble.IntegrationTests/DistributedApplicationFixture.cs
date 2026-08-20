@@ -19,6 +19,9 @@ public sealed class DistributedApplicationFixture : IAsyncLifetime
 
     public HttpClient AuthenticatedApiClient { get; private set; } = null!;
 
+    /// <summary>True when the generated solution ships an identity provider.</summary>
+    public bool RequiresAuthentication { get; private set; }
+
     public async ValueTask InitializeAsync()
     {
         var builder = await DistributedApplicationTestingBuilder
@@ -33,10 +36,19 @@ public sealed class DistributedApplicationFixture : IAsyncLifetime
 
         ApiClient = application.CreateHttpClient("simble");
         AuthenticatedApiClient = application.CreateHttpClient("simble");
-        AuthenticatedApiClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(
-                "Bearer",
-                await RequestAccessTokenAsync(startup.Token));
+
+        // The AppHost only starts Keycloak for the Keycloak provider, so the suite adapts to
+        // whichever authentication the solution was generated with.
+        RequiresAuthentication = builder.Resources.Any(resource =>
+            string.Equals(resource.Name, "keycloak", StringComparison.Ordinal));
+
+        if (RequiresAuthentication)
+        {
+            AuthenticatedApiClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue(
+                    "Bearer",
+                    await RequestAccessTokenAsync(startup.Token));
+        }
     }
 
     public async ValueTask DisposeAsync()

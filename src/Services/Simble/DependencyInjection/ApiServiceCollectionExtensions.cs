@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using App.ServiceDefaults;
+using App.ServiceDefaults.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Hosting;
 using SharedApi;
@@ -42,15 +43,18 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration,
         bool isCodeGeneration)
     {
-        if (!isCodeGeneration)
-        {
-            services.AddKeycloakAuthentication(configuration);
-        }
+        var provider = isCodeGeneration
+            ? AuthenticationProvider.None
+            : services.AddPlatformAuthentication(configuration);
 
-        services.AddAuthorizationBuilder()
-            .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+        var authorization = services.AddAuthorizationBuilder();
+
+        if (provider != AuthenticationProvider.None)
+        {
+            authorization.SetFallbackPolicy(new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build());
+        }
     }
 
     private static void AddOutputCache(IHostApplicationBuilder builder)

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SharedKernel.Abstractions;
 using SharedKernel.Results;
 using Simble.Data;
@@ -13,6 +14,14 @@ public sealed class CreateSampleHandler(AppDbContext db)
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
+
+        var nameTaken = await db.Samples
+            .AnyAsync(sample => sample.Name == command.Name, cancellationToken);
+
+        if (nameTaken)
+        {
+            return SampleErrors.NameAlreadyExists(command.Name);
+        }
 
         var sample = new Sample
         {
