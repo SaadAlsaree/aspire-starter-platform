@@ -19,13 +19,13 @@ working CRUD feature. No manual wiring.
 
 ## Why teams pick it
 
-| | |
-|---|---|
-| **Mistakes caught at compile time** | Endpoints call handlers directly through typed contracts. Change a handler's return type and the build breaks — not production. |
-| **Security you cannot forget** | Deny-by-default authorization plus a test that walks every published endpoint and fails the build if one is reachable anonymously. |
+|                                     |                                                                                                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mistakes caught at compile time** | Endpoints call handlers directly through typed contracts. Change a handler's return type and the build breaks — not production.              |
+| **Security you cannot forget**      | Deny-by-default authorization plus a test that walks every published endpoint and fails the build if one is reachable anonymously.           |
 | **Scales to hundreds of endpoints** | Conventions live in one shared module. A new endpoint inherits versioning, auth, caching and error handling without touching infrastructure. |
-| **Your identity, your choice** | Keycloak, Microsoft Entra ID, or none — a config switch, not a rewrite. |
-| **Proven, not promised** | 44 tests ship green, including integration tests that boot the real stack in Docker. |
+| **Your identity, your choice**      | Keycloak, Microsoft Entra ID, or none — a config switch, not a rewrite.                                                                      |
+| **Proven, not promised**            | 44 tests ship green, including integration tests that boot the real stack in Docker.                                                         |
 
 ## The core idea
 
@@ -82,20 +82,20 @@ endpoints are covered the moment they are mapped.
 
 Set `Authentication:Provider`, or pass `--AuthProvider` when generating.
 
-| Provider | Local footprint | Notes |
-|---|---|---|
-| `Keycloak` | Container started by the AppHost with an imported realm | Default. Works offline |
-| `EntraId` | None — validated against your tenant | Set `EntraId:TenantId` and `Audience` first |
-| `None` | None | Anonymous endpoints, for spikes |
+| Provider   | Local footprint                                         | Notes                                       |
+| ---------- | ------------------------------------------------------- | ------------------------------------------- |
+| `Keycloak` | Container started by the AppHost with an imported realm | Default. Works offline                      |
+| `EntraId`  | None — validated against your tenant                    | Set `EntraId:TenantId` and `Audience` first |
+| `None`     | None                                                    | Anonymous endpoints, for spikes             |
 
 `ICurrentUser` reads `sub` then `oid`, so audit columns fill in under both Keycloak and Entra ID.
 
 ## Templates
 
-| Template | Short names | Creates |
-|---|---|---|
-| Aspire Vertical Slice Platform | `aspire-platform`, `avsp` | The whole solution |
-| Aspire Vertical Slice Service | `aspire-service`, `avss` | Another service inside it |
+| Template                       | Short names               | Creates                   |
+| ------------------------------ | ------------------------- | ------------------------- |
+| Aspire Vertical Slice Platform | `aspire-platform`, `avsp` | The whole solution        |
+| Aspire Vertical Slice Service  | `aspire-service`, `avss`  | Another service inside it |
 
 ### Create a solution
 
@@ -105,13 +105,13 @@ dotnet new aspire-platform -n Contoso --ServiceName Billing --AuthProvider Entra
 
 Solution name and service name are independent.
 
-| Option | Default |
-|---|---|
-| `--ServiceName` | `Api` |
-| `--AuthProvider` | `Keycloak` |
-| `--KeycloakPort` | `6001` |
-| `--CorsOrigin` | `http://localhost:3000` |
-| `--IncludeCiWorkflow` | `true` |
+| Option                | Default                 |
+| --------------------- | ----------------------- |
+| `--ServiceName`       | `Api`                   |
+| `--AuthProvider`      | `Keycloak`              |
+| `--KeycloakPort`      | `6001`                  |
+| `--CorsOrigin`        | `http://localhost:3000` |
+| `--IncludeCiWorkflow` | `true`                  |
 
 ### Add a service
 
@@ -151,17 +151,17 @@ The template prints these steps after it runs.
 
 ## Under the hood
 
-| Concern | Choice |
-|---|---|
-| Orchestration | .NET Aspire 13 |
-| API | Wolverine HTTP, vertical slices, conventions in `SharedApi` |
-| Versioning | URL segment via `Asp.Versioning` |
-| Persistence | EF Core 10 + PostgreSQL, soft delete, audit, concurrency token |
-| Cache | Redis output cache, per-user, tag eviction on writes |
-| Errors | RFC 9457 `application/problem+json` |
-| Validation | FluentValidation |
-| Observability | OpenTelemetry + Serilog |
-| Tests | xUnit v3, Aspire integration testing |
+| Concern       | Choice                                                         |
+| ------------- | -------------------------------------------------------------- |
+| Orchestration | .NET Aspire 13                                                 |
+| API           | Wolverine HTTP, vertical slices, conventions in `SharedApi`    |
+| Versioning    | URL segment via `Asp.Versioning`                               |
+| Persistence   | EF Core 10 + PostgreSQL, soft delete, audit, concurrency token |
+| Cache         | Redis output cache, per-user, tag eviction on writes           |
+| Errors        | RFC 9457 `application/problem+json`                            |
+| Validation    | FluentValidation                                               |
+| Observability | OpenTelemetry + Serilog                                        |
+| Tests         | xUnit v3, Aspire integration testing                           |
 
 ## Operating notes
 
@@ -175,16 +175,5 @@ The template prints these steps after it runs.
   one rate-limit partition: `{ "ForwardedHeaders": { "KnownNetworks": [ "10.0.0.0/8" ] } }`.
 - **Rate limiting** is per process. Scale-out multiplies the effective limit; move it to the ingress
   when that matters.
-
-## Contributing to the template
-
-The published template is generated from this solution, so what ships is exactly what CI builds and
-tests.
-
-```powershell
-./sync-template.ps1 -Check    # fails if the packaged copy drifted
-./pack.ps1 -Smoke             # pack, install, generate a throwaway solution and build it
-./pack.ps1 -Push -ApiKey <key>
-```
 
 MIT licensed.
